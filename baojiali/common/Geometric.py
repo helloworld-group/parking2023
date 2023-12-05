@@ -10,16 +10,20 @@ class Polygon:
         pass
     
     def get_minX(self):
-        pass
+        x_values, y_values = zip(*self.pos_list)
+        return min(x_values)
     
     def get_maxX(self):
-        pass
+        x_values, y_values = zip(*self.pos_list)
+        return max(x_values)
     
     def get_minY(self):
-        pass
+        x_values, y_values = zip(*self.pos_list)
+        return min(y_values)
     
     def get_maxY(self):
-        pass
+        x_values, y_values = zip(*self.pos_list)
+        return max(y_values)
 
 def main():
     polygon=Polygon()
