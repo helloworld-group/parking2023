@@ -1,4 +1,3 @@
-
 class Polygon:
     def __init__(self) -> None:
         self.pos_list=[]

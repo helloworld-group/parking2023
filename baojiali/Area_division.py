@@ -1,27 +1,33 @@
 # import os
 # import sys
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'common')))
-
 # from Geometric import Polygon
-from common import Geometric
+from visualize import visualize
+from structure import Parking
+from optimizer import optimizer
 
-class ParkingArea(Geometric.Polygon):
-    def __init__(self) -> None:
-        super().__init__()
-        aaa=1
-    pass
+
 
 def main():
     
-    pos_list=[]
-    pos_list.append((0,0))
-    pos_list.append((10,0))
-    pos_list.append((10,5))
-    pos_list.append((5,5))
+    parking_counter=[(0, 0), (10, 0), (10, 10), (0,10)]
     
-    parking_area=ParkingArea()
-    parking_area.add_point_list(pos_list)
-    min_x=parking_area.get_minX()
-    aaa=1
+    parking_area=Parking.ParkingArea()
+    parking_area.set_counter(parking_counter)
+    
+    obstacle_countour=[(0,6),(6,6),(6,10),(0,10)]
+    parking_area.add_obstacle(obstacle_countour)
+    # parking_area.plot()
+    # visualize.plot_polygon(parking_area.pos_list)
+    
+    # min_x=parking_area.get_minX()
+    # max_x=parking_area.get_maxX()
+    # min_y=parking_area.get_minY()
+    # max_y=parking_area.get_maxY()
+    
+    n=2
+    opt=optimizer.AreaOptimizer()
+    opt.optimize(division_num=n,parking_area=parking_area)
+    
 if __name__ == "__main__":
     main()

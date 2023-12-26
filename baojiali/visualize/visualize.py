@@ -1,15 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_polygon(coordinates):
+
+def plot_polygon(coordinates,fill_color='lightblue',line_color='black'):
     # 将多边形坐标转换为numpy数组
     # 将多边形坐标转换为numpy数组
     polygon = np.array(coordinates + [coordinates[0]])
 
     # 绘制多边形
-    plt.figure()
-    plt.fill(polygon[:, 0], polygon[:, 1], color='lightblue', edgecolor='black')
-    plt.plot(polygon[:, 0], polygon[:, 1], color='black')
+    # plt.figure()
+    plt.fill(polygon[:, 0], polygon[:, 1], color=fill_color, edgecolor='black')
+    plt.plot(polygon[:, 0], polygon[:, 1], color=line_color)
 
     # 设置图形属性
     plt.title('Closed Polygon Plot')
@@ -27,3 +28,4 @@ if __name__ == "__main__":
 
     # 绘制多边形
     plot_polygon(point_coordinates)
+    aaa=1
