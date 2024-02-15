@@ -1,0 +1,5 @@
+会议人员：鲍佳立 尹璐
+会议内容：关于会议论文abstract投稿的初次讨论与书写
+abstract初稿内容：
+The study proposes to develop a rule driven algorithm for automatic floorplan generation. The method is highly applicable to the generation of architectural floor plans with significant changes in edge contours and numerous internal obstacles. The algorithm attempts to optimize the use of available space in the parking area by dividing the parking area into sub spaces and arranging the lanes within. The algorithm’s primary objective is to compress the field of computation by Monte Carlo method and greedy algorithm, and to arrange the vehicle lanes inside the sub space by the predefined rules, considering the obstacles.
+Furthermore, a user-friendly interface is designed to meet the flexible and diverse needs of users. Qualitative and Quantitative analysis is given to evaluate the efficiency of the proposed method and demonstrates that we achieved superior performance. 
