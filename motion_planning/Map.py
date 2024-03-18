@@ -1,4 +1,5 @@
-import matplotlib as plt
+import matplotlib.pyplot as plt
+import numpy as np
 class GridMap:
     def __init__(self,width,height) -> None:
         self.width=width
@@ -8,18 +9,34 @@ class GridMap:
     def print(self):
         for row in self.grid:
             print(row)
-    def plot(self):
 
-        pass
+    def neighbors(self,row,col):
+        result=[]
+        dirs=[[-1,0],[1,0],[0,-1],[0,1]]
+        for dir in dirs:
+            next_row=row+dir[0]
+            next_col=col+dir[1]
+            if next_row <0 or next_row>=self.height:
+                continue
+            if next_col <0 or next_col>=self.width:
+                continue
+            if self.grid[next_row][next_col]==1:
+                continue
+            result.append([next_row,next_col])
+        return result
+
+    def plot(self):
+        plt.imshow(self.grid)
+        plt.show()
     
     def add_obstacle(self,row,col,width,height):
         """_summary_
 
         Args:
-            row (_type_): _description_
-            col (_type_): _description_
-            width (_type_): _description_
-            height (_type_): _description_
+            row (int): _description_
+            col (int): _description_
+            width (int): _description_
+            height (int): _description_
         """
         if row<0 or row>=len(self.grid):
             return
