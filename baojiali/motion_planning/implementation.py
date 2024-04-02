@@ -248,6 +248,8 @@ def test_with_custom_order(neighbor_order):
     draw_grid(g, path=reconstruct_path(came_from, start=start, goal=goal),
               point_to=came_from, start=start, goal=goal)
 
+
+test_with_custom_order(None)
 class GridWithAdjustedWeights(GridWithWeights):
     def cost(self, from_node, to_node):
         prev_cost = super().cost(from_node, to_node)
