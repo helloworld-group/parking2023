@@ -1,5 +1,5 @@
 import numpy as np
-from PIL._imaging import display
+# from PIL._imaging import display
 from matplotlib import patches
 from shapely.geometry import Point, Polygon, LineString
 from shapely import buffer
@@ -25,13 +25,19 @@ class CFG:
 def show_polygon(polygon):
     p = gpd.GeoSeries(polygon)
     p.plot()
-    plt.show()
+    # plt.show()
 
+def save_polygon(polygon: Polygon,save_name: str="text.jpg"):
+    p = gpd.GeoSeries(polygon)
+    p.plot()
+    path="layout_data/"+save_name
+    plt.savefig(path,dpi=100)
+    plt.close()
 
 def show_matrix(matrix: List[List]):
     plt.matshow(matrix)
     plt.gca().invert_yaxis()
-    plt.show()
+    # plt.show()
 
 
 def show_points(points):
@@ -41,7 +47,7 @@ def show_points(points):
     plt.ylabel("Y Axis")
     plt.title("Scatter Plot of Points Sets")
     plt.legend()
-    plt.show()
+    # plt.show()
 
 def show_layouts(layouts: [tuple], axis_range):
     fig, ax = plt.subplots(figsize=(8, 8), dpi=300)
@@ -78,10 +84,10 @@ def show_layouts(layouts: [tuple], axis_range):
     plt.ylabel("Y Axis")
     plt.title("Rectangles Plot")
     plt.grid(True)
-    plt.show()
+    # plt.show()
 
-def show_car_and_pillar(car, pillar, axis_range):
-    fig, ax = plt.subplots(figsize=(10, 10), dpi=300)
+def show_car_and_pillar(car, pillar, axis_range,save_name="test.jpg"):
+    fig, ax = plt.subplots(figsize=(10, 10), dpi=100)
     ax.set_xlim(axis_range[0], axis_range[2])
     ax.set_ylim(axis_range[1], axis_range[3])
     for bounds in car:
@@ -108,7 +114,10 @@ def show_car_and_pillar(car, pillar, axis_range):
     plt.ylabel("Y Axis")
     plt.title("Rectangles Plot")
     plt.grid(True)
-    plt.show()
+    path="generate_data/"+save_name
+    plt.savefig(path,dpi=100)
+    plt.close()
+    # plt.show()
 
 def range_iterator(start, end, step):
     current = start
@@ -712,41 +721,79 @@ def from_rectangle_to_graph(polygon_bounds):
             graph.add_edge(edge)
     return graph
 
+def generate_random_obstacle(x_min=0, x_max=100, y_min=0, y_max=50,base_width=20,base_height=20)-> Polygon:
+    center_x=random.randint(x_min, x_max)
+    center_y=random.randint(y_min, y_max)
+    width=base_width+random.randint(-10, 10)
+    height=base_height+random.randint(-10, 10)
+    polygon_input_list=[]
+    polygon_input_list.append((center_x-width/2,center_y-height/2))
+    polygon_input_list.append((center_x-width/2,center_y+height/2))
+    polygon_input_list.append((center_x+width/2,center_y+height/2))
+    polygon_input_list.append((center_x+width/2,center_y-height/2))
+    polygon=Polygon(polygon_input_list)
+    return polygon
 
-polygon_input = polygon_input = read_input("GD12-input.txt")
-min_x, min_y, max_x, max_y = polygon_input.bounds
-show_polygon(polygon_input)
-polygon_input_buffer = buffer(
-    polygon_input, -CFG.car_length - CFG.road_width / 2, join_style="mitre"
-)
-show_polygon(polygon_input_buffer)
-best_num = 0
-best_car_layouts = []
-best_pillar_layouts = []
+def generate_random_polygon()-> Polygon:
+    width_base=100
+    height_base=50
+    height_noise=random.randint(-20, 20)
+    width_noise=random.randint(-10, 10)
+    input_points_list=[]
+    input_points_list.append((0,0))
+    input_points_list.append((0,height_base+height_noise))
+    input_points_list.append((width_base+width_noise,height_base+height_noise))
+    input_points_list.append((width_base+width_noise,0))
+    
+    obstacle=generate_random_obstacle(x_min=0,x_max=width_base,y_min=0,y_max=height_base)
+    # obstacle = Polygon([(20, 20), (20, 40), (40, 40), (40, 20)])
+    polygon=Polygon(input_points_list)
+    polygon=polygon.difference(obstacle)
+    return polygon
 
-# 矩形切割
-# for i in range(CFG.rand_times):
-polygon_bounds_list = maximum_cut_polygon(polygon_input_buffer)
-show_layouts(polygon_bounds_list, (min_x, min_y, max_x, max_y))
-# display(polygon_bounds_list)
-graph = from_rectangle_to_graph(polygon_bounds_list)
-for edge in graph.edges:
-    print(edge)
+def main():
+    for i in range(1000):
+        name="%05d" % i
+        name+=".jpg"
+        polygon_input=generate_random_polygon()
+        # polygon_input = polygon_input = read_input("GD12-input.txt")
+        min_x, min_y, max_x, max_y = polygon_input.bounds
+        # show_polygon(polygon_input)
+        save_polygon(polygon_input,save_name=name)
+        polygon_input_buffer = buffer(
+            polygon_input, -CFG.car_length - CFG.road_width / 2, join_style="mitre"
+        )
+        # show_polygon(polygon_input_buffer)
+        best_num = 0
+        best_car_layouts = []
+        best_pillar_layouts = []
 
-# 内部排布
-inner_layouts = []
-pillar_layouts = []
-for polygon_bounds in polygon_bounds_list:
-    car_bounds_list, pillar_bounds_list = inner_layout(polygon_bounds, 1)
-    inner_layouts += car_bounds_list
-    pillar_layouts += pillar_bounds_list
-# 外部排布
-outer_layouts = outer_layout(polygon_input)
-car_layouts = inner_layouts + outer_layouts
-if len(car_layouts) > best_num:
-    best_num = len(car_layouts)
-    best_car_layouts = car_layouts
-    pillar_layouts = pillar_layouts
+        # 矩形切割
+        # for i in range(CFG.rand_times):
+        polygon_bounds_list = maximum_cut_polygon(polygon_input_buffer)
+        # show_layouts(polygon_bounds_list, (min_x, min_y, max_x, max_y))
+        # display(polygon_bounds_list)
+        graph = from_rectangle_to_graph(polygon_bounds_list)
+        for edge in graph.edges:
+            print(edge)
 
-# print(i, len(car_layouts))
-show_car_and_pillar(car_layouts, pillar_layouts, (min_x, min_y, max_x, max_y))
+        # 内部排布
+        inner_layouts = []
+        pillar_layouts = []
+        for polygon_bounds in polygon_bounds_list:
+            car_bounds_list, pillar_bounds_list = inner_layout(polygon_bounds, 1)
+            inner_layouts += car_bounds_list
+            pillar_layouts += pillar_bounds_list
+        # 外部排布
+        outer_layouts = outer_layout(polygon_input)
+        car_layouts = inner_layouts + outer_layouts
+        if len(car_layouts) > best_num:
+            best_num = len(car_layouts)
+            best_car_layouts = car_layouts
+            pillar_layouts = pillar_layouts
+
+        # print(i, len(car_layouts))
+        show_car_and_pillar(car_layouts, pillar_layouts, (min_x, min_y, max_x, max_y),save_name=name)
+    
+if __name__ == "__main__":
+    main()
