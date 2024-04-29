@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 def draw_tile(graph, id, style):
     r = " . "
     if 'number' in style and id in style['number']: r = " %-2d" % style['number'][id]
@@ -71,3 +70,49 @@ class GridMap:
 
 class WeightedGraph:
     pass
+import enum
+NodeType = enum.Enum('NodeType', ('C', 'P', 'E','N'))
+
+class Node:
+    def __init__(self,x,y,type=NodeType.N):
+        self.x=x
+        self.y=y
+        self.type=type
+
+class Edge:
+    def __init__(self,node0:Node,node1:Node,weight):
+        self.node0=node0
+        self.node1=node1
+        self.weight=weight
+
+class NodeMap:
+    def __init__(self):
+        self.nodes=set()
+        self.edges=set()
+    
+    def add_node(self,node:Node):
+        self.nodes.add(node)
+        
+    def add_edge(self,edge:Edge):
+        self.edges.add(edge)
+        if edge.node0 not in self.nodes:
+            self.nodes.add(edge.node0)
+        if edge.node1 not in self.nodes:
+            self.nodes.add(edge.node1)
+        
+def draw_NodeMap(nodeMap:NodeMap):
+    for edge in nodeMap.edges:
+        pass
+    pass
+
+def main():
+    edges=[]
+    edge0=Edge(node0=Node(x=100,y=100,type=NodeType.P),node1=Node(x=200,y=200,type=NodeType.P),weight=200)
+    nodeMap=NodeMap()
+    nodeMap.add_edge(edge0)
+    draw_NodeMap(nodeMap)
+    
+
+if __name__ == '__main__':
+    main()
+        
