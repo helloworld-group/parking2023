@@ -96,8 +96,17 @@ def show_car_and_pillar(car, pillar, axis_range,save_name="test.jpg"):
             [min_x, max_x, max_x, min_x, min_x],
             [min_y, min_y, max_y, max_y, min_y],
             color="black",
-            linewidth=0.5,
+            linewidth=0,
         )
+        rectangle = patches.Rectangle(
+            (min_x, min_y),
+            max_x - min_x,
+            max_y - min_y,
+            linewidth=0,
+            edgecolor="black",
+            facecolor="green",
+        )
+        ax.add_patch(rectangle)
     for bounds in pillar:
         min_x, min_y, max_x, max_y = bounds
         ax.plot(
@@ -106,14 +115,14 @@ def show_car_and_pillar(car, pillar, axis_range,save_name="test.jpg"):
             color="red",
             linewidth=0.5,
         )
-    ax.axhline(0, color="black", linewidth=0.5)
-    ax.axvline(0, color="black", linewidth=0.5)
+    # ax.axhline(0, color="black", linewidth=0.5)
+    # ax.axvline(0, color="black", linewidth=0.5)
     # 保持xy比例一致
     ax.set_aspect("equal", adjustable="box")
-    plt.xlabel("X Axis")
-    plt.ylabel("Y Axis")
-    plt.title("Rectangles Plot")
-    plt.grid(True)
+    # plt.xlabel("X Axis")
+    # plt.ylabel("Y Axis")
+    # plt.title("Rectangles Plot")
+    # plt.grid(True)
     path="generate_data/"+save_name
     plt.savefig(path,dpi=100)
     plt.close()
@@ -735,9 +744,9 @@ def generate_random_obstacle(x_min=0, x_max=100, y_min=0, y_max=50,base_width=20
     return polygon
 
 def generate_random_polygon()-> Polygon:
-    width_base=100
+    width_base=50
     height_base=50
-    height_noise=random.randint(-20, 20)
+    height_noise=random.randint(-10, 10)
     width_noise=random.randint(-10, 10)
     input_points_list=[]
     input_points_list.append((0,0))
