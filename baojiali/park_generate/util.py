@@ -24,12 +24,12 @@ def save_polygon(polygon: Polygon,folder:str="parking_layout_data",img_name: str
         x_interior, y_interior = interior.xy
         x_hole.extend(x_interior)
         y_hole.extend(y_interior)
-
+    fig, ax = plt.subplots()
     # 绘制外部多边形
-    plt.fill(x_exterior, y_exterior, 'lightblue', label='Exterior')
+    ax.fill(x_exterior, y_exterior, 'lightblue', label='Exterior')
 
     # 绘制内部空洞
-    plt.fill(x_hole, y_hole, 'red', label='Hole')
+    ax.fill(x_hole, y_hole, 'red', label='Hole')
     # plt.show()
 
 
@@ -38,9 +38,9 @@ def save_polygon(polygon: Polygon,folder:str="parking_layout_data",img_name: str
     #     p2=gpd.GeoSeries(obstacle)
     #     p2.plot(facecolor="red")
     path=os.path.join(folder,img_name)
-    plt.axhline(0, color="black", linewidth=0.5)
-    plt.axvline(0, color="black", linewidth=0.5)
-    plt.axis('equal')
+    ax.axhline(0, color="black", linewidth=0.5)
+    ax.axvline(0, color="black", linewidth=0.5)
+    ax.set_aspect("equal", adjustable="box")
     plt.savefig(path,bbox_inches='tight',dpi=100)
     plt.close()
 
