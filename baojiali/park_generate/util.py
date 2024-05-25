@@ -10,6 +10,17 @@ def show_polygon(polygon):
     p.plot()
     plt.show()
 
+def save_description(road_width: float,folder: str,text_name: str):
+    folder=folder.rstrip("\\")
+    if not os.path.exists(folder):
+        os.makedirs(folder) 
+    description="road_width:"+str(road_width)
+    text_name+='.txt'
+    path=os.path.join(folder,text_name)
+    with open(path, "w", encoding="utf-8") as file:
+        # 将字符串写入文件
+        file.write(description)
+
 def save_polygon(polygon: Polygon,folder:str="parking_layout_data",img_name: str="text.jpg"):
     folder=folder.rstrip("\\")
     if not os.path.exists(folder):

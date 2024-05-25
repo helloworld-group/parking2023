@@ -673,13 +673,23 @@ def generate_random_layout() -> List[Polygon]:
 def generate_data(
     layout_folder: str = "parking_layout_data",
     generate_folder: str = "parking_generate_data",
-    name: str = "test.jpg",
+    description_folder:str="parking_description_data",
+    name: str = "001",
+    random_params: bool = False,
 ):
+
+    if random_params:
+        random_road_width = random.choice([4.5, 8.5])
+        CFG.road_width=random_road_width
+        save_description(CFG.road_width,description_folder,name)
+        
+    
+    img_name=name+".jpg"
     polygon_input, obstacle = generate_random_layout()
     # polygon_input = polygon_input = read_input("GD12-input.txt")
     min_x, min_y, max_x, max_y = polygon_input.bounds
     # show_polygon(polygon_input)
-    save_polygon(polygon=polygon_input, folder=layout_folder, img_name=name)
+    save_polygon(polygon=polygon_input, folder=layout_folder, img_name=img_name)
 
     polygon_input_buffer = buffer(
         polygon_input, -CFG.car_length - CFG.road_width / 2, join_style="mitre"
@@ -721,7 +731,7 @@ def generate_data(
         obstacle=obstacle,
         axis_range=(min_x, min_y, max_x, max_y),
         folder=generate_folder,
-        img_name=name,
+        img_name=img_name,
         save_mode=True,
     )
 
@@ -731,33 +741,36 @@ def main():
     for i in range(4000):
         print("data:", i)
         name = "%05d" % i
-        name += ".jpg"
         generate_data(
             layout_folder="parking_layout_data",
             generate_folder="parking_generate_data",
+            description_folder="parking_description_data",
             name=name,
+            random_params=True
         )
 
     # validation data
     for i in range(200):
         print("val:", i)
         name = "%05d" % i
-        name += ".jpg"
         generate_data(
             layout_folder="val_parking_layout_data",
             generate_folder="val_parking_generate_data",
+            description_folder="val_parking_description_data",
             name=name,
+            random_params=True
         )
 
     # test data
     for i in range(200):
         print("test:", i)
         name = "%05d" % i
-        name += ".jpg"
         generate_data(
             layout_folder="test_parking_layout_data",
             generate_folder="test_parking_generate_data",
+            description_folder="test_parking_description_data",
             name=name,
+            random_params=True
         )
 
 
