@@ -679,9 +679,10 @@ def generate_data(
 ):
 
     if random_params:
-        random_road_width = random.choice([4.5, 8.5])
-        CFG.road_width=random_road_width
-        save_description(CFG.road_width,text_folder,name)
+        random_car_width = random.choice([2.4, 4.8])
+        CFG.car_width=random_car_width
+        text="car_width:"+str(random_car_width)
+        save_text(text,text_folder,name)
         
     
     img_name=name+".jpg"
