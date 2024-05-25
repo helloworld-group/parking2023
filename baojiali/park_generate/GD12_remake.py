@@ -673,7 +673,7 @@ def generate_random_layout() -> List[Polygon]:
 def generate_data(
     layout_folder: str = "parking_layout_data",
     generate_folder: str = "parking_generate_data",
-    description_folder:str="parking_description_data",
+    text_folder:str="parking_description_data",
     name: str = "001",
     random_params: bool = False,
 ):
@@ -681,7 +681,7 @@ def generate_data(
     if random_params:
         random_road_width = random.choice([4.5, 8.5])
         CFG.road_width=random_road_width
-        save_description(CFG.road_width,description_folder,name)
+        save_description(CFG.road_width,text_folder,name)
         
     
     img_name=name+".jpg"
@@ -744,7 +744,7 @@ def main():
         generate_data(
             layout_folder="parking_layout_data",
             generate_folder="parking_generate_data",
-            description_folder="parking_description_data",
+            description_folder="parking_text_data",
             name=name,
             random_params=True
         )
@@ -756,7 +756,7 @@ def main():
         generate_data(
             layout_folder="val_parking_layout_data",
             generate_folder="val_parking_generate_data",
-            description_folder="val_parking_description_data",
+            description_folder="val_parking_text_data",
             name=name,
             random_params=True
         )
@@ -768,7 +768,7 @@ def main():
         generate_data(
             layout_folder="test_parking_layout_data",
             generate_folder="test_parking_generate_data",
-            description_folder="test_parking_description_data",
+            description_folder="test_parking_text_data",
             name=name,
             random_params=True
         )
