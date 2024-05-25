@@ -744,7 +744,7 @@ def main():
         generate_data(
             layout_folder="parking_layout_data",
             generate_folder="parking_generate_data",
-            description_folder="parking_text_data",
+            text_folder="parking_text_data",
             name=name,
             random_params=True
         )
@@ -756,7 +756,7 @@ def main():
         generate_data(
             layout_folder="val_parking_layout_data",
             generate_folder="val_parking_generate_data",
-            description_folder="val_parking_text_data",
+            text_folder="val_parking_text_data",
             name=name,
             random_params=True
         )
@@ -768,7 +768,7 @@ def main():
         generate_data(
             layout_folder="test_parking_layout_data",
             generate_folder="test_parking_generate_data",
-            description_folder="test_parking_text_data",
+            text_folder="test_parking_text_data",
             name=name,
             random_params=True
         )
