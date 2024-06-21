@@ -98,15 +98,15 @@ def show_car_and_pillar(car, pillar, axis_range,save_name="test.jpg"):
             color="black",
             linewidth=0,
         )
-        rectangle = patches.Rectangle(
-            (min_x, min_y),
-            max_x - min_x,
-            max_y - min_y,
-            linewidth=0,
-            edgecolor="black",
-            facecolor="green",
-        )
-        ax.add_patch(rectangle)
+        # rectangle = patches.Rectangle(
+        #     (min_x, min_y),
+        #     max_x - min_x,
+        #     max_y - min_y,
+        #     linewidth=0,
+        #     edgecolor="black",
+        #     facecolor="green",
+        # )
+        # ax.add_patch(rectangle)
     for bounds in pillar:
         min_x, min_y, max_x, max_y = bounds
         ax.plot(
@@ -761,18 +761,18 @@ def generate_random_polygon()-> Polygon:
     return polygon
 
 def main():
-    for i in range(1000):
+    for i in range(1):
         name="%05d" % i
         name+=".jpg"
-        polygon_input=generate_random_polygon()
-        # polygon_input = polygon_input = read_input("GD12-input.txt")
+        # polygon_input=generate_random_polygon()
+        polygon_input = polygon_input = read_input("GD12-input.txt")
         min_x, min_y, max_x, max_y = polygon_input.bounds
-        # show_polygon(polygon_input)
+        show_polygon(polygon_input)
         save_polygon(polygon_input,save_name=name)
         polygon_input_buffer = buffer(
             polygon_input, -CFG.car_length - CFG.road_width / 2, join_style="mitre"
         )
-        # show_polygon(polygon_input_buffer)
+        show_polygon(polygon_input_buffer)
         best_num = 0
         best_car_layouts = []
         best_pillar_layouts = []
@@ -803,6 +803,7 @@ def main():
 
         # print(i, len(car_layouts))
         show_car_and_pillar(car_layouts, pillar_layouts, (min_x, min_y, max_x, max_y),save_name=name)
+        aaaa=1
     
 if __name__ == "__main__":
     main()
