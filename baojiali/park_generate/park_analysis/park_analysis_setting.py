@@ -1,5 +1,5 @@
 from typing import Dict
-from park_utils import LightArea,Path,Trajectory
+from park_analysis.park_utils import LightArea,Path,Trajectory
 import pandas as pd
     
 def define_park_areas()-> Dict[str,LightArea]:
@@ -118,4 +118,5 @@ def define_trajectory(file_path:str)->Dict[str,Trajectory]:
         path_id = row['path_id']
         time = row['time']
         trajectorys[str(vehicle_id)]=Trajectory(trajectory_id=str(vehicle_id),path_id=str(path_id),start_time=str(time))
+        
     return trajectorys

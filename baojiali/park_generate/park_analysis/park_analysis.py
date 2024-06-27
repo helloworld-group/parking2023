@@ -18,8 +18,8 @@ def main():
     light_areas=define_light_areas()
     road_areas=define_road_areas()
     park_areas=define_park_areas()
-    paths=read_paths("path_leading.txt")
-    trajectorys=define_trajectory("parking_enter_scheme_leading.csv")
+    paths=read_paths("park_analysis/path_leading.txt")
+    trajectorys=define_trajectory("park_analysis/parking_enter_scheme_leading.csv")
     # paths=read_paths("path_booking.txt")
     # trajectorys=define_trajectory("parking_enter_scheme_booking.csv")
     for key,trajectory in trajectorys.items():

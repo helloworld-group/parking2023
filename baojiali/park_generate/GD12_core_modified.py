@@ -9,6 +9,7 @@ import geopandas as gpd
 from typing import List
 from math import isclose
 import random
+import time
 
 
 class CFG:
@@ -23,17 +24,19 @@ class CFG:
     road_width = 5.5  # 道路宽度
     car_group_limit = 5  # 车道组数
     vertical_group_size=2 # the vertical maximum vehicles inside the group
-    horizontal_group_size=4 # the horizontal maximum vehicles inside the group
+    horizontal_group_size=3 # the horizontal maximum vehicles inside the group
     min_division_width = 17 # 最小分割宽度
     min_division_height = 17  # 最小分割高度
     division_repeat_time = 30 # 最小分割重复次数
     
 
 
-def show_polygon(polygon):
+def show_polygon(polygon,img_name=None):
     p = gpd.GeoSeries(polygon)
     p.plot()
     plt.show()
+    if img_name:   
+        plt.savefig(img_name,format='png',dpi=100) 
 
 def show_polygon_exterior(polygon):
 # 提取多边形的外轮廓
@@ -63,7 +66,7 @@ def show_points(points):
     plt.show()
 
 
-def show_layouts(layouts: [tuple], axis_range):
+def show_layouts(layouts: [tuple], axis_range,img_name=None):
     fig, ax = plt.subplots(figsize=(8, 8), dpi=300)
     ax.set_xlim(axis_range[0], axis_range[2])
     ax.set_ylim(axis_range[1], axis_range[3])
@@ -82,26 +85,29 @@ def show_layouts(layouts: [tuple], axis_range):
         cy = ry + rectangle.get_height() / 2.0
         area = abs((max_x - min_x) * (max_y - min_y))
         ax.annotate(
-            f"No.{i+1}\narea:{area:.2f}",
+            # f"No.{i+1}\narea:{area:.2f}",
+            f"No.{i+1}:{int(area)}",
             (cx, cy),
             color="black",
-            fontsize=5,
+            fontsize=12,
             ha="center",
             va="center",
         )
         ax.add_patch(rectangle)
-    ax.axhline(0, color="black", linewidth=0.5)
-    ax.axvline(0, color="black", linewidth=0.5)
+    # ax.axhline(0, color="black", linewidth=0.5)
+    # ax.axvline(0, color="black", linewidth=0.5)
     # 保持xy比例一致
     ax.set_aspect("equal", adjustable="box")
     plt.xlabel("X Axis")
     plt.ylabel("Y Axis")
     plt.title("Rectangles Plot")
-    plt.grid(True)
+    # plt.grid(True)
     plt.show()
+    if img_name:
+        plt.savefig(img_name,format='png',dpi=100)
 
 
-def show_car_and_pillar(layout,car, pillar, obstacles, axis_range):
+def show_car_and_pillar(layout,car, pillar, obstacles, axis_range,img_name=None):
     fig, ax = plt.subplots(figsize=(10, 10), dpi=300)
     ax.set_xlim(axis_range[0], axis_range[2])
     ax.set_ylim(axis_range[1], axis_range[3])
@@ -154,6 +160,8 @@ def show_car_and_pillar(layout,car, pillar, obstacles, axis_range):
     plt.title("Rectangles Plot")
     # plt.grid(True)
     plt.show()
+    if img_name:
+        plt.savefig(img_name,format='png',dpi=100)
     aaa = 1
 
 
@@ -328,8 +336,11 @@ def vertical_parking_generate():
     pass
 
 def inner_layout(polygon_bounds: tuple, layout_type: int):
-    car_bounds_list = []
-    pillar_bounds_list = []
+    car_bounds_list_1 = []
+    pillar_bounds_list_1 = []
+    
+    car_bounds_list_2 = []
+    pillar_bounds_list_2 = []
     min_x, min_y, max_x, max_y = polygon_bounds
     car_width = CFG.car_width
     car_length = CFG.car_length
@@ -341,6 +352,7 @@ def inner_layout(polygon_bounds: tuple, layout_type: int):
         max_y - CFG.road_width / 2,
     )
     
+    # layout_type 1 is horizontal layout, and layout_type 2 is vertical layout
     if layout_type == 1:
         horizontal_pos = min_x
         horizontal_idx=0
@@ -366,7 +378,7 @@ def inner_layout(polygon_bounds: tuple, layout_type: int):
                 # stop if the current position hits the vertical limit
                 if vertical_pos > max_y - car_length:
                     break
-                car_bounds_list.append([horizontal_pos, vertical_pos, horizontal_pos + car_width, vertical_pos + car_length])
+                car_bounds_list_1.append([horizontal_pos, vertical_pos, horizontal_pos + car_width, vertical_pos + car_length])
                 
                 # when we start a new small group horizontally, we add the pillars 
                 if horizontal_idx%CFG.horizontal_group_size==0:
@@ -377,8 +389,8 @@ def inner_layout(polygon_bounds: tuple, layout_type: int):
                     y2=vertical_pos+CFG.pillar_width/2
                     
                     # if horizontal_idx!=0:
-                    pillar_bounds_list.append((x1,y1,x2,y2))
-                    pillar_bounds_list.append((x1,y1+CFG.car_length,x2,y2+CFG.car_length))
+                    pillar_bounds_list_1.append((x1,y1,x2,y2))
+                    pillar_bounds_list_1.append((x1,y1+CFG.car_length,x2,y2+CFG.car_length))
                     # add a pillar at the top
                     
                 if horizontal_idx%CFG.horizontal_group_size==(CFG.horizontal_group_size-1):
@@ -389,8 +401,8 @@ def inner_layout(polygon_bounds: tuple, layout_type: int):
                     y2=vertical_pos+CFG.pillar_width/2
                     
                     # if horizontal_idx!=0:
-                    pillar_bounds_list.append((x1,y1,x2,y2))
-                    pillar_bounds_list.append((x1,y1+CFG.car_length,x2,y2+CFG.car_length))
+                    pillar_bounds_list_1.append((x1,y1,x2,y2))
+                    pillar_bounds_list_1.append((x1,y1+CFG.car_length,x2,y2+CFG.car_length))
                     
                 # if we vertically hit the limit of the big group, ex, the second row, we move across the road
                 if vertical_idx%CFG.vertical_group_size==(CFG.vertical_group_size-1) :
@@ -407,79 +419,6 @@ def inner_layout(polygon_bounds: tuple, layout_type: int):
                 
             horizontal_pos+=CFG.car_width
             horizontal_idx+=1
-                
-                # if i%CFG.horizontal_group_size==0 and j%CFG.vertical_group_size==0:
-                    
-                
-            
-            
-            # # vertically generate the parking slots until the end
-            # while j < max_y - car_length:
-            #     count_num_j += 1
-            #     if count_num_i % CFG.group_size_limit == 1 and count_num_j % 2 == 1:
-            #         if count_num_j == 1 and count_num_i == 1:
-            #             i += CFG.pillar_width
-            #         pillar_bounds_list.append(
-            #             (i - CFG.pillar_width, j, i, j + CFG.pillar_length)
-            #         )
-            #         if j + car_length < max_y:
-            #             pillar_bounds_list.append(
-            #                 (
-            #                     i - CFG.pillar_width,
-            #                     j + car_length - CFG.pillar_length / 2,
-            #                     i,
-            #                     j + car_length + CFG.pillar_length / 2,
-            #                 )
-            #             )
-            #         if j + car_length * 2 < max_y:
-            #             pillar_bounds_list.append(
-            #                 (
-            #                     i - CFG.pillar_width,
-            #                     j + car_length * 2 - CFG.pillar_length,
-            #                     i,
-            #                     j + car_length * 2,
-            #                 )
-            #             )
-            #     car_bounds_list.append([i, j, i + car_width, j + car_length])
-            #     if (
-            #         count_num_i % 4 == 0 or i + car_width * 2 > max_x
-            #     ) and count_num_j % 2 == 1:
-            #         i += CFG.pillar_width
-            #         pillar_bounds_list.append(
-            #             (
-            #                 i + car_width - CFG.pillar_width,
-            #                 j,
-            #                 i + car_width,
-            #                 j + CFG.pillar_length,
-            #             )
-            #         )
-            #         if j + car_length < max_y:
-            #             pillar_bounds_list.append(
-            #                 (
-            #                     i + car_width - CFG.pillar_width,
-            #                     j + car_length - CFG.pillar_length / 2,
-            #                     i + car_width,
-            #                     j + car_length + CFG.pillar_length / 2,
-            #                 )
-            #             )
-            #         if j + car_length * 2 < max_y:
-            #             pillar_bounds_list.append(
-            #                 (
-            #                     i + car_width - CFG.pillar_width,
-            #                     j + car_length * 2 - CFG.pillar_length,
-            #                     i + car_width,
-            #                     j + car_length * 2,
-            #                 )
-            #             )
-            #         i -= CFG.pillar_width
-            #     if count_num_j % 2 == 0:
-            #         j += CFG.road_width
-            #     j += car_length
-            # if count_num_i % 4 == 0:
-            #     i += CFG.pillar_width
-            # if count_num_i % (4 * CFG.car_group_limit) == 0:
-            #     i += CFG.road_width
-            # i += car_width
     else:
         count_num_i = 0
         i = min_x
@@ -554,7 +493,7 @@ def inner_layout(polygon_bounds: tuple, layout_type: int):
                 i += CFG.road_width
             i += car_length
 
-    return car_bounds_list, pillar_bounds_list
+    return car_bounds_list_1, pillar_bounds_list_1
 
 
 def is_clockwise(polygon):
@@ -931,6 +870,7 @@ def from_rectangle_to_graph(polygon_bounds):
 
 
 def main():
+    start_time = time.time()
     polygon_input, obstacles = read_input("GD12-input.txt")
     min_x, min_y, max_x, max_y = polygon_input.bounds
     
@@ -956,7 +896,7 @@ def main():
         polygon_input_buffer = polygon_input_buffer.difference(extended_obstacle)
         polygon_input_obstacle=polygon_input_obstacle.difference(obstalce)
     show_polygon(polygon_input_obstacle)
-    show_polygon(polygon_input_buffer)
+    show_polygon(polygon_input_buffer,"polygon_input_buffer.png")
 
     best_num = 0
     best_car_layouts = []
@@ -965,7 +905,7 @@ def main():
     # 矩形切割
     # for i in range(CFG.rand_times):
     polygon_bounds_list = maximum_cut_polygon(polygon_input_buffer)
-    show_layouts(polygon_bounds_list, (min_x, min_y, max_x, max_y))
+    show_layouts(polygon_bounds_list, (min_x, min_y, max_x, max_y),'layout_cut.png')
     # display(polygon_bounds_list)
     graph = from_rectangle_to_graph(polygon_bounds_list)
     for edge in graph.edges:
@@ -987,12 +927,14 @@ def main():
         best_car_layouts = car_layouts
         pillar_layouts = pillar_layouts
 
+    print('car_num:'+str(len(car_layouts)))
     # print(i, len(car_layouts))
     show_car_and_pillar(
-        polygon_input,car_layouts, pillar_layouts, obstacles, (min_x-5, min_y-5, max_x+5, max_y+5)
+        polygon_input,car_layouts, pillar_layouts, obstacles, (min_x-5, min_y-5, max_x+5, max_y+5),'parking_generation.png'
     )
-    aaaa = 1
-
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Program execution time: {elapsed_time} seconds")
 
 if __name__ == "__main__":
     main()

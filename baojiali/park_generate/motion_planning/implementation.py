@@ -12,26 +12,50 @@ T = TypeVar('T')
 
 # Location = TypeVar('Location')
 
-class Location():
-    def __init__(self,id:int,x:float,y:float) -> None:
-        self.id=id
-        self.x = x
-        self.y = y
+# class Location():
+#     def __init__(self,x:float,y:float,id:int=-1) -> None:
+#         self.x = x
+#         self.y = y
+#         self.id=id
         
+        
+class Node():
+    counter = 0
+    def __init__(self,x,y,id=None) -> None:
+        if id:
+            self.id=id
+        else:
+            self.id=Node.counter
+            Node.counter+=1
+        self.x=x
+        self.y=y
+        
+
+                
 class Graph():
     def __init__(self):
         self.edges: dict[int, list[int]] = {}
-        self.nodes:dict[int,Location]={}
+        self.nodes:dict[int,Node]={}
         
-    def add_edge(self, id1: int, id2: int):
-        # self.nodes.setdefault
-        self.edges.setdefault(id1, []).append(id2)
-        # self.edges.setdefault(id2, []).append(id1)
+    def add_edge(self, u: int, v: int):
+        """在两个已有的节点之间添加一条边"""
+        if u in self.nodes and v in self.nodes:
+            if u not in self.edges:
+                self.edges[u] = []
+            self.edges[u].append(v)
+    # def add_edge(self, id1: int, id2: int):
+    #     # self.nodes.setdefault
+    #     self.edges.setdefault(id1, []).append(id2)
+    #     # self.edges.setdefault(id2, []).append(id1)
     
-    def add_node(self,id:int,node:Location):
-        self.nodes[id]=node
+    def add_node(self,node:Node):
+        """将一个节点添加到图中"""
+        if node.id not in self.nodes:
+            self.nodes[node.id] = node
+            self.edges[node.id] = []
+        # self.nodes[id]=node
         
-    def neighbors(self, location: Location) -> list[Location]: 
+    def neighbors(self, location: Node) -> list[Node]: 
         neighbord=[]
         for neighbor_id in self.edges[location.id]:
             neighbord.append(self.nodes[neighbor_id])
@@ -50,17 +74,24 @@ class Graph():
         ymax=max(y)
         return xmin,ymin,xmax,ymax
     
-    def get_location(self,id:int)->Location:
+    def get_location(self,id:int)->Node:
         if id in self.nodes.keys():
             return self.nodes[id]
         
+    def insert_node_in_edge(self, u: int, v: int, new_node: Node):
+        """在边 (u, v) 中插入新节点 new_node"""
+        if u in self.edges and v in self.edges[u]:
+            self.add_node(new_node)       # 添加新节点 new_node
+            self.edges[u].remove(v)       # 移除原来的边 (u, v)
+            self.add_edge(u, new_node.id) # 添加新的边 (u, new_node)
+            self.add_edge(new_node.id, v) # 添加新的边 (new_node, v)
         
 
 class SimpleGraph:
     def __init__(self):
-        self.edges: dict[Location, list[Location]] = {}
+        self.edges: dict[Node, list[Node]] = {}
     
-    def neighbors(self, id: Location) -> list[Location]:
+    def neighbors(self, id: Node) -> list[Node]:
         return self.edges[id]
 
 import collections
@@ -142,7 +173,7 @@ class WeightedGraph(Graph):
     #         return math.sqrt(location_from.x-location_to.x)**2+(location_from.y-location_to.y)**2
     #     else:
     #         return None
-    def cost(self, from_location: Location, to_location: Location) -> float:
+    def cost(self, from_location: Node, to_location: Node) -> float:
         if to_location.id in self.edges[from_location.id]:
             
             return math.sqrt((from_location.x-to_location.x)**2+(from_location.y-to_location.y)**2)
@@ -172,16 +203,19 @@ import heapq
 class PriorityQueue:
     def __init__(self):
         self.elements: list[tuple[float, T]] = []
-    
+        self.seen_priorities=set()
     def empty(self) -> bool:
         return not self.elements
     
     def put(self, item: T, priority: float):
-        heapq.heappush(self.elements, (priority, item))
+        if priority not in self.seen_priorities:
+            heapq.heappush(self.elements, (priority, item))
+            self.seen_priorities.add(priority)
     
     def get(self) -> T:
-        return heapq.heappop(self.elements)[1]
-
+        priority,item=heapq.heappop(self.elements)
+        self.seen_priorities.remove(priority)
+        return item
 def dijkstra_search(graph: WeightedGraph, start: Location, goal: Location):
     frontier = PriorityQueue()
     frontier.put(start, 0)
@@ -226,31 +260,26 @@ def reconstruct_path(came_from: dict[Location, Location],
 diagram_nopath = GridWithWeights(10, 10)
 diagram_nopath.walls = [(5, row) for row in range(10)]
 
-# def heuristic(a: GridLocation, b: GridLocation) -> float:
-#     (x1, y1) = a
-#     (x2, y2) = b
-#     return abs(x1 - x2) + abs(y1 - y2)
 
-
-def heuristic(a: Location, b: Location) -> float:
+def heuristic(a: Node, b: Node) -> float:
     (x1, y1) = a.x,a.y
     (x2, y2) = b.x,b.y
     return abs(x1 - x2) + abs(y1 - y2)
 
 
-def a_star_search(graph: WeightedGraph, start: Location, goal: Location):
+def a_star_search(graph: WeightedGraph, start: Node, goal: Node):
     frontier = PriorityQueue()
     frontier.put(start, 0)
-    came_from: dict[Location, Optional[Location]] = {}
-    cost_so_far: dict[Location, float] = {}
+    came_from: dict[Node, Optional[Node]] = {}
+    cost_so_far: dict[Node, float] = {}
     came_from[start] = None
     cost_so_far[start] = 0
     
     while not frontier.empty():
-        current: Location = frontier.get()
+        current: Node = frontier.get()
         
         if current == goal:
-            break
+            return came_from, cost_so_far
         
         for next in graph.neighbors(current):
             new_cost = cost_so_far[current] + graph.cost(current, next)
@@ -260,7 +289,7 @@ def a_star_search(graph: WeightedGraph, start: Location, goal: Location):
                 frontier.put(next, priority)
                 came_from[next] = current
     
-    return came_from, cost_so_far
+    return (None,None)
 
 def breadth_first_search(graph: Graph, start: Location, goal: Location)->dict[Location, Optional[Location]] :
     frontier = Queue()

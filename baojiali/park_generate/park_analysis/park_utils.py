@@ -1,6 +1,46 @@
+import csv
+import pandas as pd
 from typing import Dict,List
 from datetime import datetime, timedelta
-from park_analysis_setting import *
+from motion_planning.map_tools import Node,Light,Map
+# from park_analysis.park_analysis_setting import *
+
+
+class VehicleSchedule():
+    def __init__(self,id:int,target_id:int,time):
+        self.id=id
+        self.target_id=target_id
+        self.start_time=parse_time(time)
+        self.lighting_delay_time_minute=get_lighting_delay_time_minute(self.start_time) #分钟
+
+
+    def calculate_light_periods(self,start_time:datetime,path: List[Node],lights:Dict[int,Light]):
+        for idx in range(len(path)-1):
+            # select the lights which are activated by the path
+            for light_id,light in lights.items():
+                if light.is_activated_by_path_section(path[idx],path[idx+1]):
+                    lights[light_id].add_period(start_time,start_time+timedelta(minutes=self.lighting_delay_time_minute))
+        return lights
+    
+    def calculate_park_light_periods(self,end_node:Node,start_time:datetime,lights:Dict[int,Light]):
+        # end_node=map.weighted_graph.nodes[]      self.target_id
+        for light_id,light in lights.items():
+            if light.is_activated_by_node(end_node,threshold=4):
+                lights[light_id].add_period(start_time,start_time+timedelta(minutes=self.lighting_delay_time_minute))
+                break
+        return lights
+        
+def read_schedule(csv_file:str)->Dict[int,VehicleSchedule]:
+    vehicle_schedules:Dict[int,VehicleSchedule]={}
+    df = pd.read_csv(csv_file)
+    # 遍历每一行
+    for index, row in df.iterrows():
+        vehicle_id = int(row['vehicle_id'])
+        target_id = int(row['target_id'])
+        time = row['time']
+        vehicle_schedule=VehicleSchedule(vehicle_id,target_id,time)
+        vehicle_schedules[vehicle_id]=vehicle_schedule
+    return vehicle_schedules
 
 class LightArea:
     def __init__(self, name:str):
@@ -62,7 +102,7 @@ def parse_time(time_str):
     # 使用 strptime 函数将字符串解析为 datetime 对象
     time_obj = datetime.strptime(time_str, time_format)
     return time_obj
-
+# calculate the difference between two times in minutes
 def calculate_time_difference(time1, time2):
     # 计算时间差
     time_diff = abs(time1 - time2)
