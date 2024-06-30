@@ -27,13 +27,14 @@ class Light():
         A=(node_0.x,node_0.y)
         B=(node_1.x,node_1.y)
         distance,proj_point=point_to_segment_distance_with_intersection(P,A,B)
+        # print(distance)
         if distance<threshold:
             return True
         return False
 
     def is_activated_by_node(self,node:Node,threshold=3)->bool:
         distance=math.sqrt((self.x-node.x)**2+(self.y-node.y)**2)
-        print(distance)
+        # print(distance)
         if distance<threshold:
             return True
         return False
@@ -82,8 +83,7 @@ class LaneSection():
 class Map():
     def __init__(self) -> None:
         self.lane_sections:dict[int,LaneSection]={}
-        self.weighted_graph=WeightedGraph()
-        
+        self.weighted_graph=None
 
     def add_lane_section(self,lane_section:LaneSection):
         self.lane_sections[lane_section.id]=lane_section
@@ -96,10 +96,16 @@ class Map():
             y.append(lane_section.nodes[0].y)
             x.append(lane_section.nodes[-1].x)
             y.append(lane_section.nodes[-1].y)
-        xmin=min(x)
-        xmax=max(x)
-        ymin=min(y)
-        ymax=max(y)
+        if len(x)>0:
+            xmin=min(x)
+            xmax=max(x)
+            ymin=min(y)
+            ymax=max(y)
+        else:
+            xmin=0
+            xmax=100
+            ymin=0
+            ymax=100
         return xmin,ymin,xmax,ymax
     
     def get_closest_edge(self,x:float,y:float)-> Tuple[float,Tuple[np.array],float]:
@@ -147,7 +153,7 @@ class Map():
         
         pass
     
-    def create_weighted_graph_from_lane_sections(self,nodes:List[Node]=None)->WeightedGraph:
+    def create_weighted_graph_from_lane_sections(self,nodes:List[Node]=None):
         self.weighted_graph=WeightedGraph()
         if not nodes:
             # add the start and end node of the section into weighted graph, and create edge between these two points
@@ -163,9 +169,7 @@ class Map():
                     neighbor_section=self.lane_sections[neighbor_id]
                     current_node=lane_section.nodes[-1]
                     neighbor_node=neighbor_section.nodes[0]
-                    # current_node,neighbor_node=get_connection(lane_section,neighbor_section)
                     self.weighted_graph.add_edge(current_node.id,neighbor_node.id)
-        return self.weighted_graph
 
     def get_weighted_graph(self):
         self.create_weighted_graph_from_lane_sections()
@@ -192,17 +196,63 @@ def read_light(csv_file:str)->Dict[int,Light]:
             lights[id]=light
     return lights
 
+def read_entrance_exit(csv_file: str):
+    entrances:Dict[int,ParkingSlot]={}
+    exits:Dict[int,ParkingSlot]={}
+    df = pd.read_csv(csv_file)
+    for index, row in df.iterrows():
+        id = int(row['id'])
+        x= float(row['x'])
+        y = float(row['y'])
+        if row['type']=='entrance':
+            entrance=ParkingSlot(id,x,y)
+            entrances[id]=entrance
+        elif row['type']=='exit':
+            exit=ParkingSlot(id,x,y)
+            exits[id]=exit
+
+    return entrances,exits
+
+
+
 def read_parking_slot(csv_file: str):
     parking_slots:Dict[int,ParkingSlot]={}
-    with open(csv_file, 'r') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            id = int(row[0])
-            x= float(row[1])
-            y= float(row[2])
+    
+    df = pd.read_csv(csv_file)
+    for index, row in df.iterrows():
+        id = int(row['id'])
+        x= float(row['x'])
+        y = float(row['y'])
+        if pd.isna(row['type']):
             parking_slot=ParkingSlot(id,x,y)
             parking_slots[id]=parking_slot
     return parking_slots
+
+
+def read_pedestrian_map(csv_file:str)->Map:
+    map=Map()
+    map.weighted_graph=WeightedGraph()
+    
+    df = pd.read_csv(csv_file)
+    # 遍历每一行
+    for index, row in df.iterrows():
+        id = int(row['node_id'])
+        x= float(row['x'])
+        y = float(row['y'])
+        neighbor_ids=[]
+        if not pd.isna(row['neibor_ids']):
+            neighbor_ids_str = str(row['neibor_ids']).strip('"')
+            if neighbor_ids_str:
+                neighbor_ids = [int(n_id) for n_id in neighbor_ids_str.split(',')]
+        node=Node(x,y,id)
+        map.weighted_graph.add_node(node)
+        for neighbor_id in neighbor_ids:
+            map.weighted_graph.add_edge(id,neighbor_id)
+    return map
+        
+        # lane_section=LaneSection(id,start_x,start_y,end_x,end_y,neighbor_ids)
+        # map.add_lane_section(lane_section)
+
 
 def read_lane_map(csv_file:str)->Map:
     # Read data from CSV file
@@ -223,22 +273,6 @@ def read_lane_map(csv_file:str)->Map:
                 neighbor_ids = [int(n_id) for n_id in neighbor_ids_str.split(',')]
         lane_section=LaneSection(id,start_x,start_y,end_x,end_y,neighbor_ids)
         map.add_lane_section(lane_section)
-        
-    # with open(csv_file, 'r') as file:
-    #     reader = csv.reader(file)
-    #     next(reader)  # Skip header row if exists
-    #     for row in reader:
-    #         if len(row) == 6:
-    #             id = int(row[0])
-    #             start_x= float(row[1])
-    #             start_y= float(row[2])
-    #             end_x= float(row[3])
-    #             end_y= float(row[4])
-    #             neighbor_ids_str = row[5].strip('"')  # Remove surrounding quotes if any
-    #             if neighbor_ids_str:
-    #                 neighbor_ids = [int(n_id) for n_id in neighbor_ids_str.split(',')]
-    #             lane_section=LaneSection(id,start_x,start_y,end_x,end_y,neighbor_ids)
-    #             map.add_lane_section(lane_section)
     
     return map
     
@@ -300,24 +334,25 @@ def get_connection(lane0:LaneSection,lane1:LaneSection)-> Tuple[Node,Node]:
     return (result_node0,result_node1)
     
 
-def visualize_light(lights:Dict[int,Light],color='green',img_name=None):
+def visualize_light(lights:Dict[int,Light],color='blue',img_name=None):
     for light_id,light in lights.items():
         plt.scatter(light.x,light.y,color=color,marker='o')
 
     
-def visualize_map(map: Map,img_name=None):
+def visualize_map(map: Map,img_name=None,node_color='coral',plot_text=True):
     
     xmin,ymin,xmax,ymax=map.get_limit()
-    plt.xlim(xmin-5,xmax+5)
-    plt.ylim(ymin-5,ymax+5)
+    plt.xlim(xmin-20,xmax+20)
+    plt.ylim(ymin-20,ymax+20)
     for id,lane_section in map.lane_sections.items():
         # plot the start node and end node, and draw the arrow between them
-        plt.scatter(lane_section.nodes[0].x,lane_section.nodes[0].y,color='red',marker='o')
-        plt.scatter(lane_section.nodes[-1].x,lane_section.nodes[-1].y,color='red',marker='o')
+        plt.scatter(lane_section.nodes[0].x,lane_section.nodes[0].y,color=node_color,marker='o')
+        plt.scatter(lane_section.nodes[-1].x,lane_section.nodes[-1].y,color=node_color,marker='o')
         
         middle_x=(lane_section.nodes[0].x+lane_section.nodes[-1].x)/2
         middle_y= (lane_section.nodes[0].y+lane_section.nodes[-1].y)/2
-        plt.text(middle_x+0.5, middle_y + 0.5, f'lane:{lane_section.id}', fontsize=8, ha='center', color='black')
+        if plot_text:
+            plt.text(middle_x+0.5, middle_y + 0.5, f'lane:{lane_section.id}', fontsize=8, ha='center', color='black')
         # draw arrow from start node to end node
         point1=(lane_section.nodes[0].x,lane_section.nodes[0].y)
         point2=(lane_section.nodes[-1].x,lane_section.nodes[-1].y)
@@ -342,19 +377,21 @@ def visualize_map(map: Map,img_name=None):
         plt.savefig(img_name,format='png',dpi=100)
     # plt.show()
 
-def visualize_parking_slots(map: Map,parking_slots: Dict[int,ParkingSlot],img_name=None):
+def visualize_parking_slots(map: Map,parking_slots: Dict[int,ParkingSlot],slot_color='cyan',marker='o',img_name=None,s=40,plot_text=True):
     for id,parking_slot in parking_slots.items():
-        plt.scatter(parking_slot.x,parking_slot.y,color='blue',marker='o')
-        plt.text(parking_slot.x+1, parking_slot.y + 0.5, f'{parking_slot.id}', fontsize=8, ha='center', color='black')
+        plt.scatter(parking_slot.x,parking_slot.y,color=slot_color,marker=marker,s=s)
+        if plot_text:
+            plt.text(parking_slot.x+1, parking_slot.y + 0.5, f'{parking_slot.id}', fontsize=8, ha='center', color='black')
         
     if img_name:
         plt.savefig(img_name,format='png',dpi=100)
 
 
-def visualize_graph(map:WeightedGraph,img_name=None):
+def visualize_graph(map:WeightedGraph,img_name=None,node_color='coral',plot_text=True):
     for id,location in map.nodes.items():
-        plt.scatter(location.x,location.y,color='red',marker='o')
-        plt.text(location.x+1, location.y + 0.5, f'{location.id}', fontsize=8, ha='center', color='black')
+        plt.scatter(location.x,location.y,color=node_color,marker='o')
+        if plot_text:
+            plt.text(location.x+1, location.y + 0.5, f'{location.id}', fontsize=8, ha='center', color='black')
     
     # plot all the edges
     for node_id,neighbor_list in map.edges.items():
@@ -369,8 +406,8 @@ def visualize_graph(map:WeightedGraph,img_name=None):
     
     plt.gca().set_aspect('equal')
     xmin,ymin,xmax,ymax=map.get_limit()
-    plt.xlim(xmin-5,xmax+5)
-    plt.ylim(ymin-5,ymax+5)
+    plt.xlim(xmin-20,xmax+20)
+    plt.ylim(ymin-20,ymax+20)
     if img_name:
         plt.savefig(img_name,format='png',dpi=100)
     # plt.legend()
@@ -388,7 +425,7 @@ def convert_to_path(came_from:Dict[Node, Optional[Node]],start_location:Node,end
     path=inverse_path[::-1]
     return path
 
-def visualize_path(map,path,img_name=None):
+def visualize_path(map,path,path_color='red',img_name=None):
     # current_location=end_location
     
     # path=convert_to_path(came_from,start_location,end_location)
@@ -397,7 +434,7 @@ def visualize_path(map,path,img_name=None):
         point1=(path[idx_node].x,path[idx_node].y)
         point2=(path[idx_node+1].x,path[idx_node+1].y)
         # note, xytext is the start point, and xy is the end point
-        plt.annotate('', xy=point2, xycoords='data', xytext=point1, textcoords='data',arrowprops=dict(arrowstyle="->",color='red',lw=2))
+        plt.annotate('', xy=point2, xycoords='data', xytext=point1, textcoords='data',arrowprops=dict(arrowstyle="->",color=path_color,lw=2))
         
     plt.scatter(path[0].x,path[0].y,color='magenta',marker="*",linewidths=5)
     plt.scatter(path[-1].x,path[-1].y,color='lime',marker="*",linewidths=5)

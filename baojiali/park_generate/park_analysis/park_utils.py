@@ -7,18 +7,22 @@ from motion_planning.map_tools import Node,Light,Map
 
 
 class VehicleSchedule():
-    def __init__(self,id:int,target_id:int,time):
+    def __init__(self,id:int,target_id:int,time,entrance_id: int,exit_id:int):
         self.id=id
         self.target_id=target_id
+        self.entrance_id=entrance_id
+        self.exit_id=exit_id
         self.start_time=parse_time(time)
         self.lighting_delay_time_minute=get_lighting_delay_time_minute(self.start_time) #分钟
+        
+        aaa=1
 
 
     def calculate_light_periods(self,start_time:datetime,path: List[Node],lights:Dict[int,Light]):
         for idx in range(len(path)-1):
             # select the lights which are activated by the path
             for light_id,light in lights.items():
-                if light.is_activated_by_path_section(path[idx],path[idx+1]):
+                if light.is_activated_by_path_section(path[idx],path[idx+1],threshold=5):
                     lights[light_id].add_period(start_time,start_time+timedelta(minutes=self.lighting_delay_time_minute))
         return lights
     
@@ -38,7 +42,9 @@ def read_schedule(csv_file:str)->Dict[int,VehicleSchedule]:
         vehicle_id = int(row['vehicle_id'])
         target_id = int(row['target_id'])
         time = row['time']
-        vehicle_schedule=VehicleSchedule(vehicle_id,target_id,time)
+        entrance_id = int(row['entrance_id'])
+        exit_id=int(row['exit_id'])
+        vehicle_schedule=VehicleSchedule(vehicle_id,target_id,time,entrance_id,exit_id)
         vehicle_schedules[vehicle_id]=vehicle_schedule
     return vehicle_schedules
 
@@ -137,4 +143,6 @@ def get_lighting_delay_time_minute(time:datetime)-> int:
     
     elif time>=time7 and time<=time8 :
         return 3
-    pass
+    
+    else:
+        return 3
