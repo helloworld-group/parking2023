@@ -1,6 +1,6 @@
 import numpy as np
 
-def point_to_segment_distance_with_intersection(P, A, B):
+def distance2segment(P, A, B):
     """
     计算点 P 到线段 AB 的最短距离，并给出交点。
     P, A, B: 二维点，格式为 (x, y)
@@ -46,6 +46,6 @@ if __name__ == "__main__":
     A = (1, 2)
     B = (7, 8)
 
-    distance, intersection_point = point_to_segment_distance_with_intersection(P, A, B)
+    distance, intersection_point = distance2segment(P, A, B)
     print(f"The shortest distance from point {P} to segment AB between {A} and {B} is {distance:.2f}")
     print(f"The closest point on the segment to {P} is {intersection_point}")
