@@ -110,8 +110,6 @@ class Map():
     
     def get_closest_edge(self,x:float,y:float)-> Tuple[float,Tuple[np.array],float]:
         min_distance=float('inf')
-        min_edge_start=None
-        min_edge_end=None
         min_proj_point=None
         
         for edge_start,edge_ends in self.weighted_graph.edges.items():
@@ -147,11 +145,6 @@ class Map():
                 
         intersection_node=Node(min_proj_point[0],min_proj_point[1])
         return min_lane_section_id,intersection_node,min_distance
-    
-    
-    def connect_sections(self):
-        
-        pass
     
     def create_weighted_graph_from_lane_sections(self,nodes:List[Node]=None):
         self.weighted_graph=WeightedGraph()

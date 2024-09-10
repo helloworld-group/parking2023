@@ -6,7 +6,6 @@ from park_analysis.park_utils import read_schedule
 import copy
 
 
-
 def main():
     # define map
     

@@ -1,0 +1,9 @@
+entrance:crimson
+exit:limegreen
+target:red
+parking slot:slategrey
+road light:blue
+park light:blue
+node:coral
+path from entrance:firebrick
+path to exit:darkorange

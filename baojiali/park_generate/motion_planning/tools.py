@@ -136,6 +136,7 @@ def read_parking_slot(csv_file: str):
     return parking_slots
 
 def read_pedestrian_map(csv_file:str)->Map:
+    """读取行人地图的graph设置"""
     map=Map()
     map.weighted_graph=WeightedGraph()
     
@@ -158,7 +159,7 @@ def read_pedestrian_map(csv_file:str)->Map:
 
 
 def read_lane_map(csv_file:str)->Map:
-    # Read data from CSV file
+    """读取车辆的图的section"""
     map=Map()
     
     df = pd.read_csv(csv_file)
@@ -176,7 +177,6 @@ def read_lane_map(csv_file:str)->Map:
                 neighbor_ids = [int(n_id) for n_id in neighbor_ids_str.split(',')]
         lane_section=LaneSection(id,start_x,start_y,end_x,end_y,neighbor_ids)
         map.add_lane_section(lane_section)
-    
     return map
     
     
